@@ -136,6 +136,38 @@ function ball.draw(lerp)
 end
 ```
 
+## Custom Events with Self
+
+Decide if your custom event is for self or non-self listeners, and send it with love.event.send or love.event.sendSelves accordingly. Don't connect a self listener and a non-self listener to the same event.
+
+```lua
+function love.load()
+    love.event.newEvents({
+        fixedupdate = 1,
+        fixedupdate_s = 1
+    })
+
+    local ball = {}
+    function ball.fixedupdate() end
+    -- or
+    function ball:fixedupdate_s() end
+
+    love.event.connectAll(ball)
+end
+
+local fps = 60
+local lerp = 0
+function love.update(dt)
+    local n
+    n, lerp = math.modf(lerp + dt*fps)
+    n = math.min(n, 3)
+    for _ = 1, n do
+        love.event.send("fixedupdate")
+        love.event.sendSelves("fixedupdate_s")
+    end
+end
+```
+
 ## Resetting
 
 To clear all listeners from all events
