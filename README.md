@@ -68,7 +68,7 @@ love.event.setSelfMode(true)
 
 ## Event Directions
 
-Each event has a direction value. Positive means listeners receive the event in the order connected; negative means the reverse order.
+Each event has a direction value. Positive means listeners receive the event in the order connected; negative means the reverse order. love callbacks are not affected; they always get the event first.
 
 By default, positive is considered outward (application to user) and negative inward (user to application). The following input events default to negative:
 
