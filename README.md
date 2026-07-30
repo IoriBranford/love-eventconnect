@@ -135,3 +135,10 @@ function ball.draw(lerp)
         ball.radius)
 end
 ```
+
+## Resetting
+
+To clear all listeners from all events
+```lua
+love.event.reset() -- pass true to also forget custom events
+```
