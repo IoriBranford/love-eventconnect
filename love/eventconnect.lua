@@ -99,16 +99,6 @@ function love.event.resetConnections()
     Conns:clearallsubs()
 end
 
-function love.event.addSelfLoveEvents(format)
-    local newev = love.event.newEvent
-    local sformat = string.format
-    format = format or "%sself"
-    for ev, dir in pairs(LoveEvents) do
-        ev = sformat(format, ev)
-        newev(ev, dir)
-    end
-end
-
 ---Connect to event
 ---@param ev string
 ---@param l listener
