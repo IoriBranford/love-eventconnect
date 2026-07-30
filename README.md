@@ -89,9 +89,9 @@ love.event.setDirection(ev, -1)
 A listener function can return "stop" to prevent propagation to the listeners after it.
 
 ```lua
-function button:mousereleased(x, y, b, t, p)
-    if button:isPointInside(x, y) then
-        button:press()
+function button.mousereleased(x, y, b, t, p)
+    if button.isPointInside(x, y) then
+        button.press()
         return "stop"
     end
 end
@@ -100,8 +100,8 @@ end
 To change the event arguments for the listeners after, return "args" followed by the new arguments.
 
 ```lua
-function camera:mousepressed(x, y, b, t, p)
-    x, y = camera:screenToWorld(x, y)
+function camera.mousepressed(x, y, b, t, p)
+    x, y = camera.screenToWorld(x, y)
     return "args", x, y, b, t, p
 end
 ```
@@ -128,7 +128,7 @@ function love.draw()
     return "args", lerp
 end
 
-function ball:draw(lerp)
+function ball.draw(lerp)
     love.graphics.circle("fill", 
         ball.x + ball.vx*lerp,
         ball.y + ball.vy*lerp,
