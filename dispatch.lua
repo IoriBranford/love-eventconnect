@@ -1,3 +1,4 @@
+local ihash = require "ihash"
 local sformat = string.format
 
 ---@alias evreq "args"|"stop"
@@ -6,12 +7,8 @@ local sformat = string.format
 ---@field [string] evfunc
 ---@field __evco thread?
 
----@class listeners
----@field [integer] listener|false
----@field free integer[]?
-
 ---@class dispatch
----@field events table<string, listeners>
+---@field events table<string, ihash<listener>>
 local dispatch = {}
 dispatch.__index = dispatch
 
@@ -39,59 +36,31 @@ end
 ---@param ev string
 ---@param l listener
 ---@return integer i
-function dispatch:sub(l, ev, after)
+function dispatch:sub(l, ev)
     assert(type(l[ev]) == "function")
-
     self:newevent(ev)
     local ls = self.events[ev]
-
-    local free = ls.free
-    local i = not after and
-        free and free[#free]
-        or (#ls+1)
-    if free then free[#free] = nil end
-
-    ls[i] = l
-    return i
+    return ihash.add(ls, l)
 end
 
-local function writesub(self, l, ev, format, after)
-    if type(l[ev]) ~= "function" then return end
-    local s = self:sub(l, ev, after)
-    if format then
-        local k = sformat(format, ev)
-        l[k] = s
-    end
-end
-
-function dispatch:multisub(l, format, after, ...)
+function dispatch:multisub(l, ...)
     local nev = select("#", ...)
+    local sub = self.sub
     for i = 1, nev do
         local ev = select(i, ...)
-        writesub(self, l, ev, format, after)
+        sub(self, l, ev)
     end
 end
 
-local allsub_evs = {}
+local function allsub(self, l, cond)
+    cond = cond or function (ev, f)
+        return type(f) == "function"
+    end
 
-local function allsub(self, l, format, after, cond)
-    cond = cond or function () return true end
-
-    -- not safe to write in a table during pairs loop
-    local evs = allsub_evs
     for ev, f in pairs(l) do
-        if type(f) == "function" then
-            evs[#evs+1] = ev
+        if cond(ev, f) then
+            self:sub(l, ev)
         end
-    end
-    for i = 1, #evs do
-        local ev = evs[i]
-        if cond(ev, l[ev]) then
-            writesub(self, l, ev, format, after)
-        end
-    end
-    for i = #evs, 1, -1 do
-        evs[i] = nil
     end
 
     local mt = getmetatable(l)
@@ -99,57 +68,40 @@ local function allsub(self, l, format, after, cond)
 
     for ev, f in pairs(mt) do
         if not rawget(l, ev) and cond(ev, f) then
-            writesub(self, l, ev, format, after)
+            self:sub(l, ev)
         end
     end
 end
 
-function dispatch:allsub(l, format, after, force)
+function dispatch:allsub(l, force)
     local evs = self.events
     local cond = not force and
-        function (ev) return evs[ev] end
-    allsub(self, l, format, after, cond)
+        function (ev, f)
+            return evs[ev] and type(f) == "function"
+        end
+    allsub(self, l, cond)
 end
 
 ---Unsubscribe
+---@param l listener
 ---@param ev string
----@param i integer
----@param l listener?
-function dispatch:unsub(l, ev, i)
+function dispatch:unsub(l, ev)
     local ls = self.events[ev]
-    if not ls then return end
-
-    if l then assert(l == ls[i]) end
-
-    if i == #ls then ls[i] = nil return end
-
-    local free = ls.free or {}
-    ls.free = free
-    free[#free+1] = i
-    ls[i] = false
+    return ls and ihash.removeordered(ls, l)
 end
 
-function dispatch:allunsub(l, format)
+function dispatch:allunsub(l)
     local unsub = self.unsub
     for ev in pairs(l) do
-        local k = sformat(format, ev)
-        local i = l[k]
-        if type(i) == "number" then
-            unsub(self, l, ev, i)
-        end
+        unsub(self, l, ev)
     end
 end
 
 function dispatch:clearsubs(ev)
     local ls = self.events[ev]
     if not ls then return end
-    for i = #ls, 1, -1 do
-        ls[i] = nil
-    end
-    local free = ls.free
-    if not free then return end
-    for i = #free, 1, -1 do
-        free[i] = nil
+    for k in pairs(ls) do
+        ls[k] = nil
     end
 end
 
@@ -182,7 +134,7 @@ local function cosend1(co, l, ev, a, b, c, d, e, f)
     return req, a, b, c, d, e, f
 end
 
----@param ls listeners
+---@param ls ihash<listener>
 ---@param i1 integer
 ---@param i2 integer
 ---@param di integer
@@ -228,7 +180,7 @@ local function cosend(ls, i1, i2, di, cl, ev, a, b, c, d, e, f)
 end
 
 ---comment
----@param ls listeners
+---@param ls ihash<listener>
 ---@param i1 integer
 ---@param i2 integer
 ---@param di integer
@@ -289,21 +241,12 @@ end
 
 function dispatch:sort(ev, cmp)
     local ls = self.events[ev]
-    if not ls then return end
+    if ls then ihash.sort(ls, cmp) end
+end
 
-    table.sort(ls, function(a, b)
-        return a and not b
-            or a and b and cmp(a, b)
-    end)
-
-    while not ls[#ls] do
-        ls[#ls] = nil
-    end
-    local sub = ev.."sub"
-    for i = 1, #ls do
-        ls[i][sub] = i
-    end
-    ls.free = nil
+function dispatch:compact(ev)
+    local ls = self.events[ev]
+    if ls then ihash.pruneordered(ls) end
 end
 
 function dispatch:stats(min)

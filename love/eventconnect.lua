@@ -106,33 +106,30 @@ function love.event.reset(hard)
 end
 
 ---Connect to event
----@param ev string
 ---@param l listener
----@param after boolean?
+---@param ev string
 ---@return integer
-function love.event.connect(l, ev, after)
-    return Conns:sub(l, ev, after)
+function love.event.connect1(l, ev)
+    return Conns:sub(l, ev)
 end
 
 ---Connect all of a table's matching functions to events
 ---@param l listener
----@param after boolean?
-function love.event.connectAll(l, format, after)
-    Conns:allsub(l, format, after)
+function love.event.connect(l)
+    Conns:allsub(l)
 end
 
 ---Disconnect from event
+---@param l listener
 ---@param ev string
----@param conn conn
----@param l listener?
-function love.event.disconnect(l, ev, conn)
-    Conns:unsub(l, ev, conn)
+function love.event.disconnect1(l, ev)
+    Conns:unsub(l, ev)
 end
 
 ---Disconnect all of a table's matching functions from events
 ---@param l any
-function love.event.disconnectAll(l, format)
-    Conns:allunsub(l, format)
+function love.event.disconnect(l)
+    Conns:allunsub(l)
 end
 
 local function send(lovef, fsend, rsend, ev, a,b,c,d,e,f)
@@ -147,6 +144,7 @@ local function send(lovef, fsend, rsend, ev, a,b,c,d,e,f)
             a,b,c,d,e,f = u, v, w, x, y, z
         end
     end
+    Conns:compact(ev)
     if (EventDirs[ev] or 1) < 0 then
         rsend(Conns, ev, a,b,c,d,e,f)
     else

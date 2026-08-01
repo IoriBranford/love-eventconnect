@@ -4,7 +4,7 @@ LOVE event listening system
 
 ## Connecting
 
-Connect listeners to each event.
+Connect listeners to each event. They will receive each event in the order they were connected.
 
 ```lua
 -- main.lua
@@ -14,10 +14,6 @@ local world = {}
 function world.update(dt) end
 function world.draw() end
 
-local hud = {}
-function hud.update(dt) end
-function hud.draw() end
-
 local menu = {}
 function menu.mousepressed(x, y, b, t, p) end
 function menu.mousemoved(x, y, dx, dy, t) end
@@ -26,29 +22,16 @@ function menu.update(dt) end
 function menu.draw() end
 
 function love.load()
-    -- connect to every event for which there is a function
-    love.event.connectAll(world)
-
     -- connect to single event
-    love.event.connect(hud, "update")
+    love.event.connect1(world, "update")
+    love.event.connect1(world, "draw")
 
-    -- 3rd param true if listener must receive event last
-    -- otherwise may be inserted into a previous listener's slot
-    love.event.connect(hud, "draw", true)
-
-    -- optional string format saves connection ids in the listener
-    -- for disconnecting later
-    -- e.g. mousepressedconnection, updateconnection, drawconnection
-    love.event.connectAll(menu, "%sconnection")
-
-    -- world, hud, menu will have update and draw called
-    -- in the order they were connected
-    -- menu will receive mouse events
+    -- connect to every event for which there is a function
+    love.event.connect(menu)
 end
 
 function menu.close()
-    -- make sure to use the same string format you used for connectAll
-    love.event.disconnectAll(menu, "%sconnection")
+    love.event.disconnect(menu)
 end
 ```
 
@@ -127,7 +110,9 @@ end
 
 ## Custom Events with Self
 
-`love.event.send` follows Self Mode. If you must mix self and non-self listeners, define separate self and non-self events, then leave Self Mode off and send events with love.event.send and love.event.sendSelf accordingly. Don't connect a self listener and a non-self listener to the same event.
+`love.event.send` follows Self Mode.
+
+If you must mix self and non-self listeners: Define separate self and non-self events. Then set Self Mode to whatever makes `love.event.send` correct for the majority of cases, and for the exceptions use `love.event.sendSelf` or `love.event.sendNonSelf`. Don't connect a self listener and a non-self listener to the same event.
 
 ```lua
 function love.load()
@@ -140,8 +125,10 @@ function love.load()
     function ball.fixedupdate() end
     function ball:fixedupdate_s() end
 
-    love.event.connectAll(ball)
+    love.event.connect(ball)
 end
+
+love.event.setSelfMode(false)
 
 local fps = 60
 local lerp = 0

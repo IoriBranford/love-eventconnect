@@ -20,7 +20,7 @@ local function newRainDrop(x)
         y, y2 = y2, y2 + RainSpeed
         local gh = love.graphics.getHeight()
         if y >= gh then
-            love.event.disconnectAll(self, "%sconnection")
+            love.event.disconnect(self)
             return
         end
     end
@@ -30,7 +30,7 @@ local function newRainDrop(x)
         love.graphics.line(x, y, x, y2)
     end
 
-    love.event.connectAll(self, "%sconnection")
+    love.event.connect(self)
 
     return self
 end
