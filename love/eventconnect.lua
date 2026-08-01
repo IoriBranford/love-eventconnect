@@ -132,6 +132,10 @@ function love.event.disconnect(l)
     Conns:allunsub(l)
 end
 
+function love.event.sortConnected(ev, cmp)
+    Conns:sort(ev, cmp)
+end
+
 local function send(lovef, fsend, rsend, ev, a,b,c,d,e,f)
     if lovef then
         local req, u, v, w, x, y, z
