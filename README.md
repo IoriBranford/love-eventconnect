@@ -123,22 +123,11 @@ function love.update(dt)
         love.event.send("fixedupdate")
     end
 end
-
-function love.draw()
-    return "args", lerp
-end
-
-function ball.draw(lerp)
-    love.graphics.circle("fill", 
-        ball.x + ball.vx*lerp,
-        ball.y + ball.vy*lerp,
-        ball.radius)
-end
 ```
 
 ## Custom Events with Self
 
-Decide if your custom event is for self or non-self listeners, and send it with love.event.send or love.event.sendSelves accordingly. Don't connect a self listener and a non-self listener to the same event.
+`love.event.send` follows Self Mode. If you must mix self and non-self listeners, define separate self and non-self events, then leave Self Mode off and send events with love.event.send and love.event.sendSelf accordingly. Don't connect a self listener and a non-self listener to the same event.
 
 ```lua
 function love.load()
@@ -149,7 +138,6 @@ function love.load()
 
     local ball = {}
     function ball.fixedupdate() end
-    -- or
     function ball:fixedupdate_s() end
 
     love.event.connectAll(ball)
@@ -163,7 +151,7 @@ function love.update(dt)
     n = math.min(n, 3)
     for _ = 1, n do
         love.event.send("fixedupdate")
-        love.event.sendSelves("fixedupdate_s")
+        love.event.sendSelf("fixedupdate_s")
     end
 end
 ```
