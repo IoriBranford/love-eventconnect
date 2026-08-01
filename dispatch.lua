@@ -261,12 +261,11 @@ function dispatch:stats(min)
     local stats = {}
     for ev, ls in pairs(self.events) do
         if #ls >= min then
-            stats[#stats+1] = sformat(
-            "%s: %d sub, %d free", ev, #ls, ls.free and #ls.free or 0)
+            stats[#stats+1] = sformat("%s:%d", ev, #ls)
             stats[ev] = #ls
         end
     end
-    return table.concat(stats, "; ")
+    return stats
 end
 
 return dispatch
