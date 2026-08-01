@@ -60,12 +60,17 @@ local LoveEvents = {
 
 local Conns = dispatch.new()
 local EventDirs = {}
-local SelfMode = false
+
+local FSend, RSend = Conns.send, Conns.rsend
 
 ---@alias conn integer
 
 function love.event.setSelfMode(selfmode)
-    SelfMode = selfmode
+    if selfmode then
+        FSend, RSend = Conns.sendself, Conns.rsendself
+    else
+        FSend, RSend = Conns.send, Conns.rsend
+    end
 end
 
 function love.event.setDirection(ev, dir)
@@ -149,10 +154,19 @@ local function send(lovef, fsend, rsend, ev, a,b,c,d,e,f)
     end
 end
 
----Broadcast an event immediately, bypassing love event queue
+---Broadcast an event immediately, bypassing love event queue,
+---respects self mode
 ---@param ev string
 ---@param ... any
 function love.event.send(ev, ...)
+    send(love[ev], FSend, RSend, ev, ...)
+end
+
+---Broadcast an event immediately, bypassing love event queue,
+---for non-self listeners
+---@param ev any
+---@param ... any
+function love.event.sendNonSelf(ev, ...)
     send(love[ev], Conns.send, Conns.rsend, ev, ...)
 end
 
@@ -160,7 +174,7 @@ end
 ---callbacks receive the listening table as 1st argument
 ---@param ev any
 ---@param ... any
-function love.event.sendSelves(ev, ...)
+function love.event.sendSelf(ev, ...)
     send(love[ev], Conns.sendself, Conns.rsendself, ev, ...)
 end
 
@@ -177,13 +191,6 @@ function love.run()
 
     -- Main loop time.
     return function()
-        local fsend, rsend
-        if SelfMode then
-            fsend, rsend = Conns.sendself, Conns.rsendself
-        else
-            fsend, rsend = Conns.send, Conns.rsend
-        end
-
         -- Process events.
         if love.event then
             love.event.pump()
@@ -193,7 +200,7 @@ function love.run()
                         return a or 0
                     end
                 else
-                    send(love.handlers[name], fsend, rsend,
+                    send(love.handlers[name], FSend, RSend,
                         name, a,b,c,d,e,f)
                 end
             end
@@ -203,13 +210,13 @@ function love.run()
         if love.timer then dt = love.timer.step() end
 
         -- Call update and draw
-        send(love.update, fsend, rsend, "update", dt) -- will pass 0 if love.timer is disabled
+        send(love.update, FSend, RSend, "update", dt) -- will pass 0 if love.timer is disabled
 
         if love.graphics and love.graphics.isActive() then
             love.graphics.origin()
             love.graphics.clear(love.graphics.getBackgroundColor())
 
-            send(love.draw, fsend, rsend, "draw")
+            send(love.draw, FSend, RSend, "draw")
 
             love.graphics.present()
         end
