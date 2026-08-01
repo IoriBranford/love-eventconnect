@@ -180,6 +180,10 @@ function love.event.sendSelf(ev, ...)
     send(love[ev], Conns.sendself, Conns.rsendself, ev, ...)
 end
 
+function love.event.getStats(min)
+    return Conns:stats(min)
+end
+
 ---@diagnostic disable-next-line: duplicate-set-field
 function love.run()
     if love.load then
