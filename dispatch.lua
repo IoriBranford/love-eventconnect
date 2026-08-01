@@ -95,6 +95,13 @@ function dispatch:allunsub(l)
     for ev in pairs(l) do
         unsub(self, l, ev)
     end
+
+    local mt = getmetatable(l)
+    if not mt then return end
+
+    for ev in pairs(mt) do
+        unsub(self, l, ev)
+    end
 end
 
 function dispatch:clearsubs(ev)
