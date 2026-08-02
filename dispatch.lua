@@ -207,15 +207,11 @@ local function send(ls, i1, i2, di, cl, ev, a, b, c, d, e, f)
                 = cl(l, ev, a, b, c, d, e, f)
             if req == "stop" then break end
             if req == "args" then
-                if u ~= nil then a = u end
-                if v ~= nil then b = v end
-                if w ~= nil then c = w end
-                if x ~= nil then d = x end
-                if y ~= nil then e = y end
-                if z ~= nil then f = z end
+                a,b,c,d,e,f = u,v,w,x,y,z
             end
         end
     end
+    return a,b,c,d,e,f
 end
 
 local function callself(l, ev, ...)
@@ -226,24 +222,36 @@ local function call(l, ev, ...)
     return l[ev](...)
 end
 
-function dispatch:send(ev, ...)
+function dispatch:send(ev, a,b,c,d,e,f)
     local ls = self.events[ev]
-    if ls then send(ls, 1, #ls, 1, call, ev, ...) end
+    if ls then
+        a,b,c,d,e,f = send(ls, 1, #ls, 1, call, ev, a,b,c,d,e,f)
+    end
+    return a,b,c,d,e,f
 end
 
-function dispatch:rsend(ev, ...)
+function dispatch:rsend(ev, a,b,c,d,e,f)
     local ls = self.events[ev]
-    if ls then send(ls, #ls, 1, -1, call, ev, ...) end
+    if ls then
+        a,b,c,d,e,f = send(ls, #ls, 1, -1, call, ev, a,b,c,d,e,f)
+    end
+    return a,b,c,d,e,f
 end
 
-function dispatch:sendself(ev, ...)
+function dispatch:sendself(ev, a,b,c,d,e,f)
     local ls = self.events[ev]
-    if ls then send(ls, 1, #ls, 1, callself, ev, ...) end
+    if ls then
+        a,b,c,d,e,f = send(ls, 1, #ls, 1, callself, ev, a,b,c,d,e,f)
+    end
+    return a,b,c,d,e,f
 end
 
-function dispatch:rsendself(ev, ...)
+function dispatch:rsendself(ev, a,b,c,d,e,f)
     local ls = self.events[ev]
-    if ls then send(ls, #ls, 1, -1, callself, ev, ...) end
+    if ls then
+        a,b,c,d,e,f = send(ls, #ls, 1, -1, callself, ev, a,b,c,d,e,f)
+    end
+    return a,b,c,d,e,f
 end
 
 function dispatch:sort(ev, cmp)

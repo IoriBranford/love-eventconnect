@@ -142,7 +142,7 @@ local function send(lovef, fsend, rsend, ev, a,b,c,d,e,f)
             = lovef(a,b,c,d,e,f)
 
         if req == "stop" then
-            return req
+            return a,b,c,d,e,f
         end
         if req == "args" then
             a,b,c,d,e,f = u, v, w, x, y, z
@@ -150,9 +150,9 @@ local function send(lovef, fsend, rsend, ev, a,b,c,d,e,f)
     end
     Conns:compact(ev)
     if (EventDirs[ev] or 1) < 0 then
-        rsend(Conns, ev, a,b,c,d,e,f)
+        return rsend(Conns, ev, a,b,c,d,e,f)
     else
-        fsend(Conns, ev, a,b,c,d,e,f)
+        return fsend(Conns, ev, a,b,c,d,e,f)
     end
 end
 
@@ -161,7 +161,7 @@ end
 ---@param ev string
 ---@param ... any
 function love.event.send(ev, ...)
-    send(love[ev], FSend, RSend, ev, ...)
+    return send(love[ev], FSend, RSend, ev, ...)
 end
 
 ---Broadcast an event immediately, bypassing love event queue,
@@ -169,7 +169,7 @@ end
 ---@param ev any
 ---@param ... any
 function love.event.sendNonSelf(ev, ...)
-    send(love[ev], Conns.send, Conns.rsend, ev, ...)
+    return send(love[ev], Conns.send, Conns.rsend, ev, ...)
 end
 
 ---Broadcast an event immediately, bypassing love event queue,
@@ -177,7 +177,7 @@ end
 ---@param ev any
 ---@param ... any
 function love.event.sendSelf(ev, ...)
-    send(love[ev], Conns.sendself, Conns.rsendself, ev, ...)
+    return send(love[ev], Conns.sendself, Conns.rsendself, ev, ...)
 end
 
 function love.event.getStats(min)
