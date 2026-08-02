@@ -3,7 +3,10 @@ local ihash = require "ihash"
 ---@class heap<T>:ihash<T>
 ---@field cmp fun(a:T, b:T):boolean
 local heap = {}
-heap.__index = heap
+
+heap.__index = function(h, k)
+    return heap[k] or ihash[k]
+end
 
 ---@return heap
 function heap.new(cmp)
@@ -29,7 +32,7 @@ end
 
 function heap.push(h, v)
     local i = ihash.add(h, v)
-    movefwd(h, i, v)
+    return movefwd(h, i, v)
 end
 
 local function moveback(h, i, v)
