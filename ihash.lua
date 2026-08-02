@@ -15,6 +15,14 @@ function ihash.add(h, t)
     return i
 end
 
+function ihash.swap(h, i, j)
+    local ti, tj = h[i], h[j]
+    if ti and tj then
+        h[i], h[j] = tj, ti
+        h[ti], h[tj] = j, i
+    end
+end
+
 ---remove element
 ---@generic T
 ---@param h ihash<T>
@@ -22,7 +30,7 @@ end
 ---@return integer? i
 ---@return T? u
 function ihash.remove(h, t)
-    local i = h[t]
+    local i = t and h[t]
     if not i then return end
 
     local u = h[#h]
