@@ -134,7 +134,7 @@ function love.event.disconnect(l)
     Conns:allunsub(l)
 end
 
-function love.event.setListenOrder(ev, cmp)
+function love.event.setConnectOrder(ev, cmp)
     Conns:lsorder(ev, cmp)
 end
 
