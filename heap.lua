@@ -10,8 +10,9 @@ end
 
 ---@return heap
 function heap.new(cmp)
-    cmp = cmp or function(a, b) return a < b end
-    return setmetatable({cmp = cmp}, heap)
+    local h = {}
+    h.cmp = cmp or function(a, b) return h[a] < h[b] end
+    return setmetatable(h, heap)
 end
 
 local swap = ihash.swap
