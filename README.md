@@ -4,7 +4,7 @@ LOVE event listening system
 
 ## Connecting
 
-Connect listeners (function tables) to each event. Initially, they respond to every event in the order they were connected.
+Connect listeners (function tables) to each event. Initially, listeners respond to every event in the order they were connected.
 
 ```lua
 -- main.lua
@@ -123,9 +123,11 @@ function love.load()
 
     local ball = {}
     function ball.fixedupdate() end
-    function ball:fixedupdate_s() end
-
     love.event.connect(ball)
+
+    local selfball
+    function selfball:fixedupdate_s() end
+    love.event.connect(selfball)
 end
 
 love.event.setSelfMode(false)
@@ -145,22 +147,23 @@ end
 
 ## Sorting
 
-Sometimes you can't connect listeners in the order you want them to act. Give the listeners some sortable property and use `love.event.sortConnected` after connecting them.
+You may want listeners to respond to a certain event in a certain order. Set a comparison function on an event with `love.event.setConnectOrder`. The next time the event is sent, the listeners list will be sorted if it has changed.
 
 ```lua
 function love.load()
     love.event.connect1(world, "draw")
     love.event.connect1(hud, "draw")
     love.event.connect1(postfilter, "draw")
+
+    -- ensuring postfilter will affect weaponwheel
+    love.event.setConnectOrder("draw", function(a, b)
+        return (a.drawpriority or 0) < (b.drawpriority or 0)
+    end)
 end
 
 function love.keypressed(k)
     if k == "q" then
         love.event.connect1(weaponwheel, "draw")
-        -- if you want postfilter applied to weaponwheel
-        love.event.sortConnected("draw", function(a, b)
-            return (a.draworder or 0) < (b.draworder or 0)
-        end)
     end
 end
 ```
