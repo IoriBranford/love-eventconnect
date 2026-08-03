@@ -108,9 +108,8 @@ end
 
 function dispatch:clearsubs(ev)
     local ls = self.events[ev]
-    if not ls then return end
-    for k in pairs(ls) do
-        ls[k] = nil
+    if ls then
+        self.events[ev] = {order = ls.order}
     end
 end
 
