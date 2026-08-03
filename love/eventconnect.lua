@@ -78,8 +78,11 @@ function love.event.setDirection(ev, dir)
 end
 
 ---Register a new event
-function love.event.newEvent(ev, dir)
-    Conns:newevent(ev)
+---@param ev string
+---@param dir number
+---@param order lsorder?
+function love.event.newEvent(ev, dir, order)
+    Conns:newevent(ev, order)
     EventDirs[ev] = dir or 1
 end
 
@@ -108,9 +111,8 @@ end
 ---Connect to event
 ---@param l listener
 ---@param ev string
----@return integer
 function love.event.connect1(l, ev)
-    return Conns:sub(l, ev)
+    Conns:sub(l, ev)
 end
 
 ---Connect all of a table's matching functions to events
@@ -132,8 +134,8 @@ function love.event.disconnect(l)
     Conns:allunsub(l)
 end
 
-function love.event.sortConnected(ev, cmp)
-    Conns:sort(ev, cmp)
+function love.event.setListenOrder(ev, cmp)
+    Conns:lsorder(ev, cmp)
 end
 
 local function send(lovef, fsend, rsend, ev, a,b,c,d,e,f)
@@ -148,7 +150,7 @@ local function send(lovef, fsend, rsend, ev, a,b,c,d,e,f)
             a,b,c,d,e,f = u, v, w, x, y, z
         end
     end
-    Conns:compact(ev)
+
     if (EventDirs[ev] or 1) < 0 then
         return rsend(Conns, ev, a,b,c,d,e,f)
     else
