@@ -52,34 +52,20 @@ function dispatch:multisub(l, ...)
     end
 end
 
-local function allsub(self, l, cond)
-    cond = cond or function (ev, f)
-        return type(f) == "function"
-    end
-
-    for ev, f in pairs(l) do
-        if cond(ev, f) then
-            self:sub(l, ev)
-        end
+function dispatch:allsub(l)
+    local sub = self.sub
+    for ev in pairs(l) do
+        sub(self, l, ev)
     end
 
     local mt = getmetatable(l)
     if not mt then return end
 
-    for ev, f in pairs(mt) do
-        if not rawget(l, ev) and cond(ev, f) then
-            self:sub(l, ev)
+    for ev in pairs(mt) do
+        if not rawget(l, ev) then
+            sub(self, l, ev)
         end
     end
-end
-
-function dispatch:allsub(l, force)
-    local evs = self.events
-    local cond = not force and
-        function (ev, f)
-            return evs[ev] and type(f) == "function"
-        end
-    allsub(self, l, cond)
 end
 
 ---Unsubscribe
