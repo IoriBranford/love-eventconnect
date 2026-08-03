@@ -33,14 +33,15 @@ function dispatch:newevents(...)
 end
 
 ---Subscribe
----@param ev string
 ---@param l listener
----@return integer i
+---@param ev string
 function dispatch:sub(l, ev)
-    assert(type(l[ev]) == "function")
-    self:newevent(ev)
+    if type(l[ev]) ~= "function" then return end
+
     local ls = self.events[ev]
-    return ihash.add(ls, l)
+    if not ls or ls[l] then return end
+
+    ihash.add(ls, l)
 end
 
 function dispatch:multisub(l, ...)
